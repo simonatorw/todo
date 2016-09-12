@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>ToDo</title>
+	</head>
+	<body>
+		<h1>ToDo</h1>
+		<form>
+			<input type="text" id="todoText" name="todoText"> <button id="add">Add</button>
+		</form>
+		<ul id="list"></ul>
+		<div id="count"></div>
+		<script src=""></script>
+		<script>
+		var app = (function() {
+			var cnt = 0;
+			var nodes = [];
+			
+			function updateCount() {
+				document.getElementById('count').innerHTML = cnt + ' item' + (cnt > 1 ? 's' : '') + ' in list';
+			}
+			
+			function add(id, txt, isInit) {
+				var node = document.createElement('LI');
+				var txtNode = document.createTextNode(txt + ' ');
+				node.appendChild(txtNode);
+				var button = document.createElement('BUTTON');
+				node.setAttribute('id', 'n' + cnt);
+				var buttonTxtNode = document.createTextNode('Delete');
+				button.appendChild(buttonTxtNode);
+				node.appendChild(button);
+				document.getElementById(id).appendChild(node);
+				cnt++;
+				updateCount();
+				if (!isInit) {
+					nodes.push(txt);
+					localStorage.todo_list = JSON.stringify(nodes);
+				}
+			}
+			
+			function remove(id, node) {
+				var list = document.getElementById(id);
+				var txt = node.parentNode.innerText.split(' ')[0];
+				for (var i = nodes.length; i--;) {
+					if (txt === nodes[i]) {
+						nodes.splice(i, 1);
+						localStorage.todo_list = JSON.stringify(nodes);
+						break;
+					}
+				}
+				list.removeChild(document.getElementById(node.parentNode.id));
+				cnt--;
+				updateCount();
+			}
+			
+			function initNodes() {
+				for (var i = 0, max = nodes.length; i < max; i++) {
+					add('list', nodes[i], true);
+				}
+			}
+		
+			function events() {
+				var body = document.getElementsByTagName('body')[0];
+
+				body.addEventListener('click', function(e) {
+					if (e.target.innerText === 'Delete') {
+						remove('list', e.target);
+					} else if (e.target.id === 'add') {
+						e.preventDefault();
+						var itemVal = document.forms[0].todoText.value;
+						document.forms[0].todoText.value = '';
+						add('list', itemVal);
+					}
+				}, true);
+				
+
+			}
+			function init() {
+				events();
+				updateCount();
+				if (localStorage.todo_list) {
+					nodes = JSON.parse(localStorage.todo_list);
+					initNodes();
+				}
+			}
+			return {
+				init: init
+			};
+		})().init();
+		</script>
+	</body>
+</html>
